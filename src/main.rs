@@ -35,7 +35,7 @@ fn main() {
     ram.seek(io::SeekFrom::Start(offset as u64))
         .expect("Failed to seek");
 
-    dbg!(disasm_evt(&mut ram).expect("Couldn't read"));
+    dbg!(disassemble(&mut ram).expect("Couldn't read"));
 
     // https://github.com/encounter/decomp-toolkit/blob/18987ed330db864b48886b44a3d7fb222857e7e1/src/util/dol.rs#L147
 }

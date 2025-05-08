@@ -3,12 +3,12 @@ use crate::{Address, Endian, Arg, FromReader, Opcode, DYNAMIC_SIZE, read_vec};
 use std::io;
 
 #[derive(Debug)]
-pub struct EvtInstr {
+pub struct Instr {
     pub opcode: Opcode,
     pub args: Vec<Arg>,
 }
 
-impl FromReader for EvtInstr {
+impl FromReader for Instr {
     type Args = (Address,);
 
     const STATIC_SIZE: usize = DYNAMIC_SIZE;
@@ -25,18 +25,18 @@ impl FromReader for EvtInstr {
 
         let args = read_vec(reader, nargs, e)?;
 
-        Ok(EvtInstr { opcode, args })
+        Ok(Instr { opcode, args })
     }
 }
 
-type EvtScript = Vec<EvtInstr>;
+pub type Script = Vec<Instr>;
 
-pub fn disasm_evt<R>(reader: &mut R) -> io::Result<EvtScript>
+pub fn disassemble<R>(reader: &mut R) -> io::Result<Script>
 where R: io::Read + io::Seek + ?Sized {
     let mut ret = vec![];
     let mut opcode = Opcode::Next;
     while opcode != Opcode::EndScript {
-        let instr = EvtInstr::from_reader(reader, Endian::Big)?;
+        let instr = Instr::from_reader(reader, Endian::Big)?;
         opcode = instr.opcode;
         ret.push(instr);
     }
