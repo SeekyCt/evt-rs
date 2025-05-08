@@ -18,6 +18,7 @@ pub enum Arg {
     ADDR(Address),
     INT(i32),
     FLOAT(f32),
+    NONE
 }
 
 pub const ADDR_MAX: i32 = -290000000;
@@ -33,7 +34,7 @@ pub const LF_MAX: i32 = -60000000;
 pub const GW_MAX: i32 = -40000000;
 pub const LW_MAX: i32 = -20000000;
 
-pub const ADDR_BASE: i32 = -270000000;
+pub const NONE: i32 = -270000000;
 pub const FLOAT_BASE: i32 = -240000000;
 pub const UF_BASE: i32 = -210000000;
 pub const UW_BASE: i32 = -190000000;
@@ -48,7 +49,10 @@ pub const LW_BASE: i32 = -30000000;
 
 impl Arg {
     pub fn decode(val: i32) -> Arg {
-        if val <= ADDR_MAX {
+        if val == NONE {
+            Arg::NONE
+        }
+        else if val <= ADDR_MAX {
             Arg::ADDR(Address(val as u32))
         }
         else if val <= FLOAT_MAX {
@@ -88,6 +92,25 @@ impl Arg {
             Arg::INT(val)
         }
     }
+
+    pub fn encode(self) -> i32 {
+        match self {
+            Arg::NONE => NONE,
+            Arg::ADDR(Address(addr)) => addr as i32,
+            Arg::FLOAT(val) => change_float(val),
+            Arg::UF(val) => val + UF_BASE,
+            Arg::UW(val) => val + UW_BASE,
+            Arg::GSW(val) => val + GSW_BASE,
+            Arg::LSW(val) => val + LSW_BASE,
+            Arg::GSWF(val) => val + GSWF_BASE,
+            Arg::LSWF(val) => val + LSWF_BASE,
+            Arg::GF(val) => val + GF_BASE,
+            Arg::LF(val) => val + LF_BASE,
+            Arg::GW(val) => val + GW_BASE,
+            Arg::LW(val) => val + LW_BASE,
+            Arg::INT(val) => val
+        }
+    }
 }
 
 impl FromReader for Arg {
@@ -111,4 +134,9 @@ pub fn check_float(val: i32) -> f32 {
     else {
         val as f32
     }
+}
+
+pub fn change_float(val: f32) -> i32
+{
+    (val * 1024.0) as i32 + FLOAT_BASE
 }
