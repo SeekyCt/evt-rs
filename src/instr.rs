@@ -1,8 +1,10 @@
-use crate::{Address, Endian, Arg, FromReader, Opcode, DYNAMIC_SIZE, read_vec};
+use crate::{
+    Address, Arg, DYNAMIC_SIZE, Endian, FromReader, Opcode, ToWriter, read_vec, write_vec,
+};
 
 use std::io;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Instr {
     pub opcode: Opcode,
     pub args: Vec<Arg>,
@@ -29,10 +31,32 @@ impl FromReader for Instr {
     }
 }
 
+impl ToWriter for Instr {
+    fn to_writer<W>(&self, writer: &mut W, e: Endian) -> io::Result<()>
+    where
+        W: io::Write + ?Sized,
+    {
+        let nargs = self.args.len() as u16;
+        let opcode = self.opcode as u16;
+
+        nargs.to_writer(writer, e)?;
+        opcode.to_writer(writer, e)?;
+        write_vec(writer, &self.args, e)?;
+
+        Ok(())
+    }
+
+    fn write_size(&self) -> usize {
+        u16::STATIC_SIZE * 2 + i32::STATIC_SIZE * self.args.len()
+    }
+}
+
 pub type Script = Vec<Instr>;
 
 pub fn disassemble<R>(reader: &mut R) -> io::Result<Script>
-where R: io::Read + io::Seek + ?Sized {
+where
+    R: io::Read + io::Seek + ?Sized,
+{
     let mut ret = vec![];
     let mut opcode = Opcode::Next;
     while opcode != Opcode::EndScript {
@@ -42,4 +66,11 @@ where R: io::Read + io::Seek + ?Sized {
     }
 
     Ok(ret)
+}
+
+pub fn assemble<W>(writer: &mut W, script: &Script) -> io::Result<()>
+where
+    W: io::Write + ?Sized,
+{
+    script.iter().try_for_each(|instr| instr.to_writer(writer, Endian::Big))
 }

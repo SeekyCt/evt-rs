@@ -1,6 +1,6 @@
-use std::{env, io, process};
+use std::{env, fs, io, process};
 use std::fs::File;
-use std::io::Seek;
+use std::io::{Read, Seek};
 
 use address::*;
 use arg::*;
@@ -14,6 +14,24 @@ pub mod address;
 pub mod instr;
 pub mod opcode;
 
+fn round_trip<R>(reader: &mut R, addr: u32) -> bool
+where
+    R: Read + Seek + ?Sized,
+{
+    let base_addr = 0x8000_0000;
+    let offset= addr - base_addr;
+
+    reader.seek(io::SeekFrom::Start(offset as u64)).expect("Failed to seek");
+    let dis = disassemble(reader).expect("Couldn't read");
+
+    let mut x = io::Cursor::new(Vec::new());
+    assemble(&mut x, &dis).expect("Failed to assemble");
+    x.seek(io::SeekFrom::Start(0)).expect("Failed to re-seek");
+    let dis2 = disassemble(&mut x).expect("Couldn't re-read");
+
+    return dis == dis2;
+}
+
 fn main() {
     let args: Vec<String> = env::args().collect();
 
@@ -23,19 +41,15 @@ fn main() {
     }
 
     let path = &args[1];
-    let addr = u32::from_str_radix(&args[2], 16)
-        .expect("Invalid address");
+    let addr = u32::from_str_radix(&args[2], 16).expect("Invalid address");
 
     let base_addr = 0x8000_0000;
     let offset= addr - base_addr;
 
-    let mut ram = File::open(path)
-        .expect("RAM dump not found");
-    
-    ram.seek(io::SeekFrom::Start(offset as u64))
-        .expect("Failed to seek");
+    let mut ram = File::open(path).expect("RAM dump not found");
+    ram.seek(io::SeekFrom::Start(offset as u64)).expect("Failed to seek");
 
-    dbg!(disassemble(&mut ram).expect("Couldn't read"));
+    println!("{}", round_trip(&mut ram, addr));
 
     // https://github.com/encounter/decomp-toolkit/blob/18987ed330db864b48886b44a3d7fb222857e7e1/src/util/dol.rs#L147
 }

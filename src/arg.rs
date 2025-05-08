@@ -1,4 +1,4 @@
-use crate::reader::{Endian, FromReader};
+use crate::{Endian, FromReader, ToWriter};
 use std::io;
 
 use crate::Address;
@@ -124,6 +124,17 @@ impl FromReader for Arg {
     {
         let int = i32::from_reader(reader, e)?;
         Ok(Arg::decode(int))
+    }
+}
+
+impl ToWriter for Arg {
+    fn to_writer<W>(&self, writer: &mut W, e: Endian) -> io::Result<()>
+    where W: io::Write + ?Sized {
+        self.encode().to_writer(writer, e)
+    }
+    
+    fn write_size(&self) -> usize {
+        Self::STATIC_SIZE
     }
 }
 
