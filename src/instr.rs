@@ -1,11 +1,11 @@
-use crate::{Address, Endian, EvtArg, FromReader, Opcode, DYNAMIC_SIZE, read_vec};
+use crate::{Address, Endian, Arg, FromReader, Opcode, DYNAMIC_SIZE, read_vec};
 
 use std::io;
 
 #[derive(Debug)]
 pub struct EvtInstr {
     pub opcode: Opcode,
-    pub args: Vec<EvtArg>,
+    pub args: Vec<Arg>,
 }
 
 impl FromReader for EvtInstr {

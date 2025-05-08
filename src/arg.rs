@@ -3,8 +3,8 @@ use std::io;
 
 use crate::Address;
 
-#[derive(Debug)]
-pub enum EvtArg {
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum Arg {
     GW(i32),
     GF(i32),
     GSW(i32),
@@ -46,51 +46,51 @@ pub const LF_BASE: i32 = -70000000;
 pub const GW_BASE: i32 = -50000000;
 pub const LW_BASE: i32 = -30000000;
 
-impl EvtArg {
-    pub fn decode(val: i32) -> EvtArg {
+impl Arg {
+    pub fn decode(val: i32) -> Arg {
         if val <= ADDR_MAX {
-            EvtArg::ADDR(Address(val as u32))
+            Arg::ADDR(Address(val as u32))
         }
         else if val <= FLOAT_MAX {
-            EvtArg::FLOAT(check_float(val))
+            Arg::FLOAT(check_float(val))
         }
         else if val <= UF_MAX {
-            EvtArg::UF(val - UF_BASE)
+            Arg::UF(val - UF_BASE)
         }
         else if val <= UW_MAX {
-            EvtArg::UW(val - UW_BASE)
+            Arg::UW(val - UW_BASE)
         }
         else if val <= GSW_MAX {
-            EvtArg::GSW(val - GSW_BASE)
+            Arg::GSW(val - GSW_BASE)
         }
         else if val <= LSW_MAX {
-            EvtArg::LSW(val - LSW_BASE)
+            Arg::LSW(val - LSW_BASE)
         }
         else if val <= GSWF_MAX {
-            EvtArg::GSWF(val - GSWF_BASE)
+            Arg::GSWF(val - GSWF_BASE)
         }
         else if val <= LSWF_MAX {
-            EvtArg::LSWF(val - LSWF_BASE)
+            Arg::LSWF(val - LSWF_BASE)
         }
         else if val <= GF_MAX {
-            EvtArg::GF(val - GF_BASE)
+            Arg::GF(val - GF_BASE)
         }
         else if val <= LF_MAX {
-            EvtArg::LF(val - LF_BASE)
+            Arg::LF(val - LF_BASE)
         }
         else if val <= GW_MAX {
-            EvtArg::GW(val - GW_BASE)
+            Arg::GW(val - GW_BASE)
         }
         else if val <= LW_MAX {
-            EvtArg::LW(val - LW_BASE)
+            Arg::LW(val - LW_BASE)
         }
         else {
-            EvtArg::INT(val)
+            Arg::INT(val)
         }
     }
 }
 
-impl FromReader for EvtArg {
+impl FromReader for Arg {
     type Args = ();
 
     const STATIC_SIZE: usize = i32::STATIC_SIZE;
@@ -100,7 +100,7 @@ impl FromReader for EvtArg {
         R: io::Read + io::Seek + ?Sized,
     {
         let int = i32::from_reader(reader, e)?;
-        Ok(EvtArg::decode(int))
+        Ok(Arg::decode(int))
     }
 }
 
