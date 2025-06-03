@@ -1,7 +1,7 @@
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 
 #[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, TryFromPrimitive, IntoPrimitive,
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, TryFromPrimitive, IntoPrimitive
 )]
 #[repr(u16)]
 pub enum Opcode {
@@ -125,4 +125,312 @@ pub enum Opcode {
     DebugName,
     DebugRem,
     DebugBp,
+}
+
+impl Opcode {
+    pub fn indent(&self) -> usize {
+        use Opcode::*;
+        match self {
+            Switch | Switchi
+            => 2,
+
+            Do |
+            IfStrEqual | IfStrNotEqual | IfStrSmall | IfStrLarge | IfStrSmallEqual | IfStrLargeEqual |
+            IffEqual | IffNotEqual | IffSmall | IffLarge | IffSmallEqual | IffLargeEqual |
+            IfEqual | IfNotEqual | IfSmall | IfLarge | IfSmallEqual | IfLargeEqual | IfFlag | IfNotFlag |
+            Else |
+            CaseEqual | CaseNotEqual | CaseSmall | CaseLarge | CaseSmallEqual | CaseLargeEqual |
+            CaseEtc | CaseOr | CaseAnd | CaseFlag | CaseBetween |
+            InlineEvt | InlineEvtId |
+            BrotherEvt | BrotherEvtId
+            => 1,
+
+            _ => 0
+        }
+    }
+
+    pub fn apply_indent(&self, indent: usize) -> usize {
+        indent + self.indent()
+    }
+
+    pub fn apply_unindent(&self, indent: usize) -> usize {
+        let delta = self.unindent();
+        if delta > indent {
+            0
+        }
+        else {
+            indent - delta
+        }
+    }
+
+    pub fn unindent(&self) -> usize {
+        use Opcode::*;
+        match self {
+            EndSwitch
+            => 2,
+
+            While |
+            Else |
+            EndIf |
+            CaseEqual | CaseNotEqual | CaseSmall | CaseLarge | CaseSmallEqual | CaseLargeEqual |
+            CaseEtc | CaseOr | CaseAnd | CaseFlag | CaseBetween |
+            EndInline | 
+            EndBrother
+            => 1,
+
+            _ => 0
+        }
+    }
+
+    pub fn name(&self) -> &str {
+        use Opcode::*;
+        match self {
+            Next => "next",
+            EndScript => "end_script",
+            EndEvt => "end_evt",
+            Lbl => "lbl",
+            Goto => "goto",
+            Do => "do",
+            While => "while",
+            DoBreak => "do_break",
+            DoContinue => "do_continue",
+            WaitFrm => "wait_frm",
+            WaitMsec => "wait_msec",
+            Halt => "halt",
+            IfStrEqual => "if_str_equal",
+            IfStrNotEqual => "if_str_not_equal",
+            IfStrSmall => "if_str_small",
+            IfStrLarge => "if_str_large",
+            IfStrSmallEqual => "if_str_small_equal",
+            IfStrLargeEqual => "if_str_large_equal",
+            IffEqual => "iff_equal",
+            IffNotEqual => "iff_not_equal",
+            IffSmall => "iff_small",
+            IffLarge => "iff_large",
+            IffSmallEqual => "iff_small_equal",
+            IffLargeEqual => "iff_large_equal",
+            IfEqual => "if_equal",
+            IfNotEqual => "if_not_equal",
+            IfSmall => "if_small",
+            IfLarge => "if_large",
+            IfSmallEqual => "if_small_equal",
+            IfLargeEqual => "if_large_equal",
+            IfFlag => "if_flag",
+            IfNotFlag => "if_not_flag",
+            Else => "else",
+            EndIf => "end_if",
+            Switch => "switch",
+            Switchi => "switchi",
+            CaseEqual => "case_equal",
+            CaseNotEqual => "case_not_equal",
+            CaseSmall => "case_small",
+            CaseLarge => "case_large",
+            CaseSmallEqual => "case_small_equal",
+            CaseLargeEqual => "case_large_equal",
+            CaseEtc => "case_etc",
+            CaseOr => "case_or",
+            CaseAnd => "case_and",
+            CaseFlag => "case_flag",
+            CaseEnd => "case_end",
+            CaseBetween => "case_between",
+            SwitchBreak => "switch_break",
+            EndSwitch => "end_switch",
+            Set => "set",
+            Seti => "seti",
+            Setf => "setf",
+            Add => "add",
+            Sub => "sub",
+            Mul => "mul",
+            Div => "div",
+            Mod => "mod",
+            Addf => "addf",
+            Subf => "subf",
+            Mulf => "mulf",
+            Divf => "divf",
+            SetRead => "set_read",
+            Read => "read",
+            Read2 => "read2",
+            Read3 => "read3",
+            Read4 => "read4",
+            ReadN => "read_n",
+            SetReadf => "set_readf",
+            Readf => "readf",
+            Readf2 => "readf2",
+            Readf3 => "readf3",
+            Readf4 => "readf4",
+            ReadfN => "readf_n",
+            ClampInt => "clamp_int",
+            SetUserWrk => "set_user_wrk",
+            SetUserFlg => "set_user_flg",
+            AllocUserWrk => "alloc_user_wrk",
+            And => "and",
+            Andi => "andi",
+            Or => "or",
+            Ori => "ori",
+            SetFrameFromMsec => "set_frame_from_msec",
+            SetMsecFromFrame => "set_msec_from_frame",
+            SetRam => "set_ram",
+            SetRamf => "set_ramf",
+            GetRam => "get_ram",
+            GetRamf => "get_ramf",
+            Setr => "setr",
+            Setrf => "setrf",
+            Getr => "getr",
+            Getrf => "getrf",
+            UserFunc => "user_func",
+            RunEvt => "run_evt",
+            RunEvtId => "run_evt_id",
+            RunChildEvt => "run_child_evt",
+            DeleteEvt => "delete_evt",
+            RestartEvt => "restart_evt",
+            SetPri => "set_pri",
+            SetSpd => "set_spd",
+            SetType => "set_type",
+            StopAll => "stop_all",
+            StartAll => "start_all",
+            StopOther => "stop_other",
+            StartOther => "start_other",
+            StopId => "stop_id",
+            StartId => "start_id",
+            ChkEvt => "chk_evt",
+            InlineEvt => "inline_evt",
+            InlineEvtId => "inline_evt_id",
+            EndInline => "end_inline",
+            BrotherEvt => "brother_evt",
+            BrotherEvtId => "brother_evt_id",
+            EndBrother => "end_brother",
+            DebugPutMsg => "debug_put_msg",
+            DebugMsgClear => "debug_msg_clear",
+            DebugPutReg => "debug_put_reg",
+            DebugName => "debug_name",
+            DebugRem => "debug_rem",
+            DebugBp => "debug_bp",
+        }
+    }
+
+    pub fn c_macro(&self) -> &str {
+        use Opcode::*;
+        match self {
+            Next => "NEXT",
+            EndScript => "END_SCRIPT",
+            EndEvt => "END_EVT",
+            Lbl => "LBL",
+            Goto => "GOTO",
+            Do => "DO",
+            While => "WHILE",
+            DoBreak => "DO_BREAK",
+            DoContinue => "DO_CONTINUE",
+            WaitFrm => "WAIT_FRM",
+            WaitMsec => "WAIT_MSEC",
+            Halt => "HALT",
+            IfStrEqual => "IF_STR_EQUAL",
+            IfStrNotEqual => "IF_STR_NOT_EQUAL",
+            IfStrSmall => "IF_STR_SMALL",
+            IfStrLarge => "IF_STR_LARGE",
+            IfStrSmallEqual => "IF_STR_SMALL_EQUAL",
+            IfStrLargeEqual => "IF_STR_LARGE_EQUAL",
+            IffEqual => "IFF_EQUAL",
+            IffNotEqual => "IFF_NOT_EQUAL",
+            IffSmall => "IFF_SMALL",
+            IffLarge => "IFF_LARGE",
+            IffSmallEqual => "IFF_SMALL_EQUAL",
+            IffLargeEqual => "IFF_LARGE_EQUAL",
+            IfEqual => "IF_EQUAL",
+            IfNotEqual => "IF_NOT_EQUAL",
+            IfSmall => "IF_SMALL",
+            IfLarge => "IF_LARGE",
+            IfSmallEqual => "IF_SMALL_EQUAL",
+            IfLargeEqual => "IF_LARGE_EQUAL",
+            IfFlag => "IF_FLAG",
+            IfNotFlag => "IF_NOT_FLAG",
+            Else => "ELSE",
+            EndIf => "END_IF",
+            Switch => "SWITCH",
+            Switchi => "SWITCHI",
+            CaseEqual => "CASE_EQUAL",
+            CaseNotEqual => "CASE_NOT_EQUAL",
+            CaseSmall => "CASE_SMALL",
+            CaseLarge => "CASE_LARGE",
+            CaseSmallEqual => "CASE_SMALL_EQUAL",
+            CaseLargeEqual => "CASE_LARGE_EQUAL",
+            CaseEtc => "CASE_ETC",
+            CaseOr => "CASE_OR",
+            CaseAnd => "CASE_AND",
+            CaseFlag => "CASE_FLAG",
+            CaseEnd => "CASE_END",
+            CaseBetween => "CASE_BETWEEN",
+            SwitchBreak => "SWITCH_BREAK",
+            EndSwitch => "END_SWITCH",
+            Set => "SET",
+            Seti => "SETI",
+            Setf => "SETF",
+            Add => "ADD",
+            Sub => "SUB",
+            Mul => "MUL",
+            Div => "DIV",
+            Mod => "MOD",
+            Addf => "ADDF",
+            Subf => "SUBF",
+            Mulf => "MULF",
+            Divf => "DIVF",
+            SetRead => "SET_READ",
+            Read => "READ",
+            Read2 => "READ2",
+            Read3 => "READ3",
+            Read4 => "READ4",
+            ReadN => "READ_N",
+            SetReadf => "SET_READF",
+            Readf => "READF",
+            Readf2 => "READF2",
+            Readf3 => "READF3",
+            Readf4 => "READF4",
+            ReadfN => "READF_N",
+            ClampInt => "CLAMP_INT",
+            SetUserWrk => "SET_USER_WRK",
+            SetUserFlg => "SET_USER_FLG",
+            AllocUserWrk => "ALLOC_USER_WRK",
+            And => "AND",
+            Andi => "ANDI",
+            Or => "OR",
+            Ori => "ORI",
+            SetFrameFromMsec => "SET_FRAME_FROM_MSEC",
+            SetMsecFromFrame => "SET_MSEC_FROM_FRAME",
+            SetRam => "SET_RAM",
+            SetRamf => "SET_RAMF",
+            GetRam => "GET_RAM",
+            GetRamf => "GET_RAMF",
+            Setr => "SETR",
+            Setrf => "SETRF",
+            Getr => "GETR",
+            Getrf => "GETRF",
+            UserFunc => "USER_FUNC",
+            RunEvt => "RUN_EVT",
+            RunEvtId => "RUN_EVT_ID",
+            RunChildEvt => "RUN_CHILD_EVT",
+            DeleteEvt => "DELETE_EVT",
+            RestartEvt => "RESTART_EVT",
+            SetPri => "SET_PRI",
+            SetSpd => "SET_SPD",
+            SetType => "SET_TYPE",
+            StopAll => "STOP_ALL",
+            StartAll => "START_ALL",
+            StopOther => "STOP_OTHER",
+            StartOther => "START_OTHER",
+            StopId => "STOP_ID",
+            StartId => "START_ID",
+            ChkEvt => "CHK_EVT",
+            InlineEvt => "INLINE_EVT",
+            InlineEvtId => "INLINE_EVT_ID",
+            EndInline => "END_INLINE",
+            BrotherEvt => "BROTHER_EVT",
+            BrotherEvtId => "BROTHER_EVT_ID",
+            EndBrother => "END_BROTHER",
+            DebugPutMsg => "DEBUG_PUT_MSG",
+            DebugMsgClear => "DEBUG_MSG_CLEAR",
+            DebugPutReg => "DEBUG_PUT_REG",
+            DebugName => "DEBUG_NAME",
+            DebugRem => "DEBUG_REM",
+            DebugBp => "DEBUG_BP",
+        }
+    }
 }
