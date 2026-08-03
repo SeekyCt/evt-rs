@@ -165,8 +165,111 @@ pub fn change_float(val: f32) -> i32
 mod tests {
     use super::*;
 
+    fn to_signed(x: u32) -> i32 {
+        let temp = x as i64; 
+        if temp > 0x8000_0000 {
+            return (temp - (0x8000_0000 * 2)) as i32;
+        } else {
+            return temp as i32;
+        }
+    }
+
     #[test]
-    fn encode_round_trip() {
+    fn decode() {
+        assert_eq!(Arg::decode(to_signed(0x8000_0000)), Arg::ADDR(Address(0x8000_0000)));
+        assert_eq!(Arg::decode(to_signed(0x8000_0001)), Arg::ADDR(Address(0x8000_0001)));
+        assert_eq!(Arg::decode(to_signed(0x9000_0000)), Arg::ADDR(Address(0x9000_0000)));
+        assert_eq!(Arg::decode(to_signed(0x9000_0001)), Arg::ADDR(Address(0x9000_0001)));
+
+        assert_eq!(Arg::decode(to_signed(0xf1b1e400)), Arg::FLOAT(0.0));
+        assert_eq!(Arg::decode(to_signed(0xf1b1e800)), Arg::FLOAT(1.0));
+
+        assert_eq!(Arg::decode(to_signed(0xf37ba780)), Arg::UF(0));
+        assert_eq!(Arg::decode(to_signed(0xf37ba781)), Arg::UF(1));
+
+        assert_eq!(Arg::decode(to_signed(0xf4acd480)), Arg::UW(0));
+        assert_eq!(Arg::decode(to_signed(0xf4acd481)), Arg::UW(1));
+
+        assert_eq!(Arg::decode(to_signed(0xf5de0180)), Arg::GSW(0));
+        assert_eq!(Arg::decode(to_signed(0xf5de0181)), Arg::GSW(1));
+
+        assert_eq!(Arg::decode(to_signed(0xf70f2e80)), Arg::LSW(0));
+        assert_eq!(Arg::decode(to_signed(0xf70f2e81)), Arg::LSW(1));
+
+        assert_eq!(Arg::decode(to_signed(0xf8405b80)), Arg::GSWF(0));
+        assert_eq!(Arg::decode(to_signed(0xf8405b81)), Arg::GSWF(1));
+
+        assert_eq!(Arg::decode(to_signed(0xf9718880)), Arg::LSWF(0));
+        assert_eq!(Arg::decode(to_signed(0xf9718881)), Arg::LSWF(1));
+
+        assert_eq!(Arg::decode(to_signed(0xfaa2b580)), Arg::GF(0));
+        assert_eq!(Arg::decode(to_signed(0xfaa2b581)), Arg::GF(1));
+
+        assert_eq!(Arg::decode(to_signed(0xfbd3e280)), Arg::LF(0));
+        assert_eq!(Arg::decode(to_signed(0xfbd3e281)), Arg::LF(1));
+
+        assert_eq!(Arg::decode(to_signed(0xfd050f80)), Arg::GW(0));
+        assert_eq!(Arg::decode(to_signed(0xfd050f81)), Arg::GW(1));
+
+        assert_eq!(Arg::decode(to_signed(0xfe363c80)), Arg::LW(0));
+        assert_eq!(Arg::decode(to_signed(0xfe363c81)), Arg::LW(1));
+
+        assert_eq!(Arg::decode(-1), Arg::INT(-1));
+        assert_eq!(Arg::decode(0), Arg::INT(0));
+        assert_eq!(Arg::decode(1), Arg::INT(1));
+
+        assert_eq!(Arg::decode(to_signed(0xefe82080)), Arg::NONE);
+    }
+
+    #[test]
+    fn encode() {
+        assert_eq!(Arg::ADDR(Address(0x8000_0000)).encode(), to_signed(0x8000_0000));
+        assert_eq!(Arg::ADDR(Address(0x8000_0001)).encode(), to_signed(0x8000_0001));
+        assert_eq!(Arg::ADDR(Address(0x9000_0000)).encode(), to_signed(0x9000_0000));
+        assert_eq!(Arg::ADDR(Address(0x9000_0001)).encode(), to_signed(0x9000_0001));
+
+        assert_eq!(Arg::FLOAT(0.0).encode(), to_signed(0xf1b1e400));
+        assert_eq!(Arg::FLOAT(1.0).encode(), to_signed(0xf1b1e800));
+
+        assert_eq!(Arg::UF(0).encode(), to_signed(0xf37ba780));
+        assert_eq!(Arg::UF(1).encode(), to_signed(0xf37ba781));
+
+        assert_eq!(Arg::UW(0).encode(), to_signed(0xf4acd480));
+        assert_eq!(Arg::UW(1).encode(), to_signed(0xf4acd481));
+
+        assert_eq!(Arg::GSW(0).encode(), to_signed(0xf5de0180));
+        assert_eq!(Arg::GSW(1).encode(), to_signed(0xf5de0181));
+
+        assert_eq!(Arg::LSW(0).encode(), to_signed(0xf70f2e80));
+        assert_eq!(Arg::LSW(1).encode(), to_signed(0xf70f2e81));
+
+        assert_eq!(Arg::GSWF(0).encode(), to_signed(0xf8405b80));
+        assert_eq!(Arg::GSWF(1).encode(), to_signed(0xf8405b81));
+
+        assert_eq!(Arg::LSWF(0).encode(), to_signed(0xf9718880));
+        assert_eq!(Arg::LSWF(1).encode(), to_signed(0xf9718881));
+
+        assert_eq!(Arg::GF(0).encode(), to_signed(0xfaa2b580));
+        assert_eq!(Arg::GF(1).encode(), to_signed(0xfaa2b581));
+
+        assert_eq!(Arg::LF(0).encode(), to_signed(0xfbd3e280));
+        assert_eq!(Arg::LF(1).encode(), to_signed(0xfbd3e281));
+
+        assert_eq!(Arg::GW(0).encode(), to_signed(0xfd050f80));
+        assert_eq!(Arg::GW(1).encode(), to_signed(0xfd050f81));
+
+        assert_eq!(Arg::LW(0).encode(), to_signed(0xfe363c80));
+        assert_eq!(Arg::LW(1).encode(), to_signed(0xfe363c81));
+
+        assert_eq!(Arg::INT(-1).encode(), -1);
+        assert_eq!(Arg::INT(0).encode(), 0);
+        assert_eq!(Arg::INT(1).encode(), 1);
+
+        assert_eq!(Arg::NONE.encode(), to_signed(0xefe82080));
+    }
+
+    #[test]
+    fn round_trip() {
         for i in 0x8000_0000..0x8180_0000 {
             let before = Arg::ADDR(Address(i));
             assert_eq!(before, Arg::decode(before.encode()));
@@ -240,4 +343,6 @@ mod tests {
         let before = Arg::NONE;
         assert_eq!(before, Arg::decode(before.encode()));
     }
+
+    // A decode->encode round trip is not guaranteed due to float rounding
 }
