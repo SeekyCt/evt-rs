@@ -5,21 +5,30 @@ use crate::Address;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Arg {
-    GW(i32),
-    GF(i32),
-    GSW(i32),
-    GSWF(i32),
-    LW(i32),
-    LF(i32),
-    LSW(i32),
-    LSWF(i32),
-    UW(i32),
-    UF(i32),
     ADDR(Address),
-    INT(i32),
     FLOAT(f32),
+    UF(i32),
+    UW(i32),
+    GSW(i32),
+    LSW(i32),
+    GSWF(i32),
+    LSWF(i32),
+    GF(i32),
+    LF(i32),
+    GW(i32),
+    LW(i32),
+    INT(i32),
     NONE
 }
+
+pub const GSW_COUNT : usize = 2048;
+pub const LSW_COUNT : usize = 1024;
+pub const GSWF_COUNT : usize = 8192;
+pub const LSWF_COUNT : usize = 512;
+pub const GF_COUNT : usize = 96;
+pub const LF_COUNT : usize = 96;
+pub const GW_COUNT : usize = 32;
+pub const LW_COUNT : usize = 16;
 
 pub const ADDR_MAX: i32 = -290000000;
 pub const FLOAT_MAX: i32 = -220000000;
