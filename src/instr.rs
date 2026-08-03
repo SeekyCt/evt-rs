@@ -1,5 +1,6 @@
 use crate::{
-    Address, Arg, DYNAMIC_SIZE, Endian, FromReader, Opcode, ToWriter, read_vec, write_vec,
+    Address, Arg, Opcode,
+    reader::{DYNAMIC_SIZE, Endian, FromReader, ToWriter, read_vec, write_vec},
 };
 
 use std::io;

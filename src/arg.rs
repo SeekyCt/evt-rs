@@ -1,4 +1,4 @@
-use crate::{Endian, FromReader, ToWriter};
+use crate::reader::{Endian, FromReader, ToWriter};
 use std::io;
 
 use crate::Address;

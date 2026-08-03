@@ -8,7 +8,6 @@ use address::*;
 use arg::*;
 use instr::*;
 use opcode::*;
-use reader::*;
 use printing::*;
 
 pub mod reader;
