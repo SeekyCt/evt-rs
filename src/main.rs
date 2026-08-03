@@ -1,6 +1,8 @@
+use std::env;
 use std::fs::File;
 use std::io;
 use std::io::{Read, Seek};
+use std::process;
 
 use csv;
 
@@ -17,6 +19,7 @@ pub mod opcode;
 pub mod printing;
 pub mod reader;
 
+#[allow(dead_code)]
 fn round_trip<R>(reader: &mut R, addr: u32) -> bool
 where
     R: Read + Seek + ?Sized,
@@ -37,6 +40,7 @@ where
     return dis == dis2;
 }
 
+#[allow(dead_code)]
 fn test_all<R>(reader: &mut R) -> io::Result<()>
 where
     R: Read + Seek + ?Sized,
@@ -51,6 +55,7 @@ where
     Ok(())
 }
 
+#[allow(dead_code)]
 fn test_single<R>(reader: &mut R, addr: u32) -> io::Result<Script>
 where
     R: Read + Seek + ?Sized,
@@ -70,27 +75,27 @@ where
 }
 
 fn main() {
-    // let args: Vec<String> = env::args().collect();
+    let args: Vec<String> = env::args().collect();
 
-    // if args.len() < 3 {
-    //     eprintln!("Usage: {} <RAM path> <script address>", &args[0]);
-    //     process::exit(1);
-    // }
+    if args.len() < 3 {
+        eprintln!("Usage: {} <RAM path> <script address>", &args[0]);
+        process::exit(1);
+    }
 
-    // let path = &args[1];
-    let path = "../evt-disassembler/ram.raw";
+    let path = &args[1];
+    let addr = args[2].trim_start_matches("0x");
+    let addr = u32::from_str_radix(addr, 16).expect("Invalid address");
+
     let mut ram = File::open(path).expect("RAM dump not found");
 
-    // test_all(&mut ram).expect("Test failed");
-    let mut out = String::new();
-    print_evt(
-        &mut out,
-        test_single(&mut ram, 0x803fbd9c).expect(""),
-        // PrintSettings::default()
-        PrintSettings { macros: true },
-    )
-    .expect("");
-    println!("{}", out);
+    let base_addr = 0x8000_0000;
+    let offset = addr - base_addr;
 
-    // https://github.com/encounter/decomp-toolkit/blob/18987ed330db864b48886b44a3d7fb222857e7e1/src/util/dol.rs#L147
+    ram.seek(io::SeekFrom::Start(offset as u64))
+        .expect("Failed to seek");
+    let dis = disassemble(&mut ram).expect("Couldn't read");
+
+    let mut out = String::new();
+    print_evt(&mut out, dis, PrintSettings::default()).unwrap();
+    println!("{}", out);
 }
