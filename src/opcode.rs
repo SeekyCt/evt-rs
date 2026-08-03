@@ -1,7 +1,7 @@
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 
 #[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, TryFromPrimitive, IntoPrimitive
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, TryFromPrimitive, IntoPrimitive,
 )]
 #[repr(u16)]
 pub enum Opcode {
@@ -131,21 +131,16 @@ impl Opcode {
     pub fn indent(&self) -> usize {
         use Opcode::*;
         match self {
-            Switch | Switchi
-            => 2,
+            Switch | Switchi => 2,
 
-            Do |
-            IfStrEqual | IfStrNotEqual | IfStrSmall | IfStrLarge | IfStrSmallEqual | IfStrLargeEqual |
-            IffEqual | IffNotEqual | IffSmall | IffLarge | IffSmallEqual | IffLargeEqual |
-            IfEqual | IfNotEqual | IfSmall | IfLarge | IfSmallEqual | IfLargeEqual | IfFlag | IfNotFlag |
-            Else |
-            CaseEqual | CaseNotEqual | CaseSmall | CaseLarge | CaseSmallEqual | CaseLargeEqual |
-            CaseEtc | CaseOr | CaseAnd | CaseFlag | CaseBetween |
-            InlineEvt | InlineEvtId |
-            BrotherEvt | BrotherEvtId
-            => 1,
+            Do | IfStrEqual | IfStrNotEqual | IfStrSmall | IfStrLarge | IfStrSmallEqual
+            | IfStrLargeEqual | IffEqual | IffNotEqual | IffSmall | IffLarge | IffSmallEqual
+            | IffLargeEqual | IfEqual | IfNotEqual | IfSmall | IfLarge | IfSmallEqual
+            | IfLargeEqual | IfFlag | IfNotFlag | Else | CaseEqual | CaseNotEqual | CaseSmall
+            | CaseLarge | CaseSmallEqual | CaseLargeEqual | CaseEtc | CaseOr | CaseAnd
+            | CaseFlag | CaseBetween | InlineEvt | InlineEvtId | BrotherEvt | BrotherEvtId => 1,
 
-            _ => 0
+            _ => 0,
         }
     }
 
@@ -155,30 +150,19 @@ impl Opcode {
 
     pub fn apply_unindent(&self, indent: usize) -> usize {
         let delta = self.unindent();
-        if delta > indent {
-            0
-        }
-        else {
-            indent - delta
-        }
+        if delta > indent { 0 } else { indent - delta }
     }
 
     pub fn unindent(&self) -> usize {
         use Opcode::*;
         match self {
-            EndSwitch
-            => 2,
+            EndSwitch => 2,
 
-            While |
-            Else |
-            EndIf |
-            CaseEqual | CaseNotEqual | CaseSmall | CaseLarge | CaseSmallEqual | CaseLargeEqual |
-            CaseEtc | CaseOr | CaseAnd | CaseFlag | CaseBetween |
-            EndInline | 
-            EndBrother
-            => 1,
+            While | Else | EndIf | CaseEqual | CaseNotEqual | CaseSmall | CaseLarge
+            | CaseSmallEqual | CaseLargeEqual | CaseEtc | CaseOr | CaseAnd | CaseFlag
+            | CaseBetween | EndInline | EndBrother => 1,
 
-            _ => 0
+            _ => 0,
         }
     }
 

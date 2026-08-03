@@ -18,17 +18,17 @@ pub enum Arg {
     GW(usize),
     LW(usize),
     INT(i32),
-    NONE
+    NONE,
 }
 
-pub const GSW_COUNT : usize = 2048;
-pub const LSW_COUNT : usize = 1024;
-pub const GSWF_COUNT : usize = 8192;
-pub const LSWF_COUNT : usize = 512;
-pub const GF_COUNT : usize = 96;
-pub const LF_COUNT : usize = 96;
-pub const GW_COUNT : usize = 32;
-pub const LW_COUNT : usize = 16;
+pub const GSW_COUNT: usize = 2048;
+pub const LSW_COUNT: usize = 1024;
+pub const GSWF_COUNT: usize = 8192;
+pub const LSWF_COUNT: usize = 512;
+pub const GF_COUNT: usize = 96;
+pub const LF_COUNT: usize = 96;
+pub const GW_COUNT: usize = 32;
+pub const LW_COUNT: usize = 16;
 
 pub const ADDR_MAX: i32 = -290000000;
 pub const FLOAT_MAX: i32 = -220000000;
@@ -43,7 +43,7 @@ pub const LF_MAX: i32 = -60000000;
 pub const GW_MAX: i32 = -40000000;
 pub const LW_MAX: i32 = -20000000;
 
-pub const FLOAT_UNIT : f32 = 1024.0;
+pub const FLOAT_UNIT: f32 = 1024.0;
 
 pub const NONE: i32 = -270000000;
 pub const FLOAT_BASE: i32 = -240000000;
@@ -62,44 +62,31 @@ impl Arg {
     pub fn decode(val: i32) -> Arg {
         if val == NONE {
             Arg::NONE
-        }
-        else if val <= ADDR_MAX {
+        } else if val <= ADDR_MAX {
             Arg::ADDR(Address(val as u32))
-        }
-        else if val <= FLOAT_MAX {
+        } else if val <= FLOAT_MAX {
             Arg::FLOAT(check_float(val))
-        }
-        else if val <= UF_MAX {
+        } else if val <= UF_MAX {
             Arg::UF((val - UF_BASE) as usize)
-        }
-        else if val <= UW_MAX {
+        } else if val <= UW_MAX {
             Arg::UW((val - UW_BASE) as usize)
-        }
-        else if val <= GSW_MAX {
+        } else if val <= GSW_MAX {
             Arg::GSW((val - GSW_BASE) as usize)
-        }
-        else if val <= LSW_MAX {
+        } else if val <= LSW_MAX {
             Arg::LSW((val - LSW_BASE) as usize)
-        }
-        else if val <= GSWF_MAX {
+        } else if val <= GSWF_MAX {
             Arg::GSWF((val - GSWF_BASE) as usize)
-        }
-        else if val <= LSWF_MAX {
+        } else if val <= LSWF_MAX {
             Arg::LSWF((val - LSWF_BASE) as usize)
-        }
-        else if val <= GF_MAX {
+        } else if val <= GF_MAX {
             Arg::GF((val - GF_BASE) as usize)
-        }
-        else if val <= LF_MAX {
+        } else if val <= LF_MAX {
             Arg::LF((val - LF_BASE) as usize)
-        }
-        else if val <= GW_MAX {
+        } else if val <= GW_MAX {
             Arg::GW((val - GW_BASE) as usize)
-        }
-        else if val <= LW_MAX {
+        } else if val <= LW_MAX {
             Arg::LW((val - LW_BASE) as usize)
-        }
-        else {
+        } else {
             Arg::INT(val)
         }
     }
@@ -119,7 +106,7 @@ impl Arg {
             Arg::LF(val) => val as i32 + LF_BASE,
             Arg::GW(val) => val as i32 + GW_BASE,
             Arg::LW(val) => val as i32 + LW_BASE,
-            Arg::INT(val) => val
+            Arg::INT(val) => val,
         }
     }
 }
@@ -140,10 +127,12 @@ impl FromReader for Arg {
 
 impl ToWriter for Arg {
     fn to_writer<W>(&self, writer: &mut W, e: Endian) -> io::Result<()>
-    where W: io::Write + ?Sized {
+    where
+        W: io::Write + ?Sized,
+    {
         self.encode().to_writer(writer, e)
     }
-    
+
     fn write_size(&self) -> usize {
         Self::STATIC_SIZE
     }
@@ -152,14 +141,12 @@ impl ToWriter for Arg {
 pub fn check_float(val: i32) -> f32 {
     if val <= FLOAT_MAX {
         (val - FLOAT_BASE) as f32 / FLOAT_UNIT
-    }
-    else {
+    } else {
         val as f32
     }
 }
 
-pub fn change_float(val: f32) -> i32
-{
+pub fn change_float(val: f32) -> i32 {
     (val * FLOAT_UNIT) as i32 + FLOAT_BASE
 }
 
@@ -168,7 +155,7 @@ mod tests {
     use super::*;
 
     fn to_signed(x: u32) -> i32 {
-        let temp = x as i64; 
+        let temp = x as i64;
         if temp > 0x8000_0000 {
             return (temp - (0x8000_0000 * 2)) as i32;
         } else {
@@ -178,10 +165,22 @@ mod tests {
 
     #[test]
     fn decode() {
-        assert_eq!(Arg::decode(to_signed(0x8000_0000)), Arg::ADDR(Address(0x8000_0000)));
-        assert_eq!(Arg::decode(to_signed(0x8000_0001)), Arg::ADDR(Address(0x8000_0001)));
-        assert_eq!(Arg::decode(to_signed(0x9000_0000)), Arg::ADDR(Address(0x9000_0000)));
-        assert_eq!(Arg::decode(to_signed(0x9000_0001)), Arg::ADDR(Address(0x9000_0001)));
+        assert_eq!(
+            Arg::decode(to_signed(0x8000_0000)),
+            Arg::ADDR(Address(0x8000_0000))
+        );
+        assert_eq!(
+            Arg::decode(to_signed(0x8000_0001)),
+            Arg::ADDR(Address(0x8000_0001))
+        );
+        assert_eq!(
+            Arg::decode(to_signed(0x9000_0000)),
+            Arg::ADDR(Address(0x9000_0000))
+        );
+        assert_eq!(
+            Arg::decode(to_signed(0x9000_0001)),
+            Arg::ADDR(Address(0x9000_0001))
+        );
 
         assert_eq!(Arg::decode(to_signed(0xf1b1e400)), Arg::FLOAT(0.0));
         assert_eq!(Arg::decode(to_signed(0xf1b1e800)), Arg::FLOAT(1.0));
@@ -225,10 +224,22 @@ mod tests {
 
     #[test]
     fn encode() {
-        assert_eq!(Arg::ADDR(Address(0x8000_0000)).encode(), to_signed(0x8000_0000));
-        assert_eq!(Arg::ADDR(Address(0x8000_0001)).encode(), to_signed(0x8000_0001));
-        assert_eq!(Arg::ADDR(Address(0x9000_0000)).encode(), to_signed(0x9000_0000));
-        assert_eq!(Arg::ADDR(Address(0x9000_0001)).encode(), to_signed(0x9000_0001));
+        assert_eq!(
+            Arg::ADDR(Address(0x8000_0000)).encode(),
+            to_signed(0x8000_0000)
+        );
+        assert_eq!(
+            Arg::ADDR(Address(0x8000_0001)).encode(),
+            to_signed(0x8000_0001)
+        );
+        assert_eq!(
+            Arg::ADDR(Address(0x9000_0000)).encode(),
+            to_signed(0x9000_0000)
+        );
+        assert_eq!(
+            Arg::ADDR(Address(0x9000_0001)).encode(),
+            to_signed(0x9000_0001)
+        );
 
         assert_eq!(Arg::FLOAT(0.0).encode(), to_signed(0xf1b1e400));
         assert_eq!(Arg::FLOAT(1.0).encode(), to_signed(0xf1b1e800));

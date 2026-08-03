@@ -73,5 +73,7 @@ pub fn assemble<W>(writer: &mut W, script: &Script) -> io::Result<()>
 where
     W: io::Write + ?Sized,
 {
-    script.iter().try_for_each(|instr| instr.to_writer(writer, Endian::Big))
+    script
+        .iter()
+        .try_for_each(|instr| instr.to_writer(writer, Endian::Big))
 }

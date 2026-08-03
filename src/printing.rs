@@ -1,14 +1,15 @@
 use std::fmt;
 
-use crate::{opcode::Opcode, Script};
+use crate::{Script, opcode::Opcode};
 
 #[derive(Default)]
 pub struct PrintSettings {
-    pub macros: bool
+    pub macros: bool,
 }
 
 pub fn print_evt<W>(writer: &mut W, evt: Script, settings: PrintSettings) -> fmt::Result
-    where W: fmt::Write + ?Sized
+where
+    W: fmt::Write + ?Sized,
 {
     let mut indent = 0;
     for instr in evt {
@@ -23,8 +24,7 @@ pub fn print_evt<W>(writer: &mut W, evt: Script, settings: PrintSettings) -> fmt
 
         let name = if settings.macros {
             opcode.c_macro()
-        }
-        else {
+        } else {
             opcode.name()
         };
         write!(writer, "{}", name)?;
