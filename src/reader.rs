@@ -24,6 +24,8 @@
     From https://github.com/encounter/decomp-toolkit/
 */
 
+#![cfg_attr(rustfmt, rustfmt_skip)]
+
 use std::{
     io,
     io::{Error, ErrorKind, Read, Seek, SeekFrom},
