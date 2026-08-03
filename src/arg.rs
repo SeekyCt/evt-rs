@@ -7,16 +7,16 @@ use crate::Address;
 pub enum Arg {
     ADDR(Address),
     FLOAT(f32),
-    UF(i32),
-    UW(i32),
-    GSW(i32),
-    LSW(i32),
-    GSWF(i32),
-    LSWF(i32),
-    GF(i32),
-    LF(i32),
-    GW(i32),
-    LW(i32),
+    UF(usize),
+    UW(usize),
+    GSW(usize),
+    LSW(usize),
+    GSWF(usize),
+    LSWF(usize),
+    GF(usize),
+    LF(usize),
+    GW(usize),
+    LW(usize),
     INT(i32),
     NONE
 }
@@ -68,34 +68,34 @@ impl Arg {
             Arg::FLOAT(check_float(val))
         }
         else if val <= UF_MAX {
-            Arg::UF(val - UF_BASE)
+            Arg::UF((val - UF_BASE) as usize)
         }
         else if val <= UW_MAX {
-            Arg::UW(val - UW_BASE)
+            Arg::UW((val - UW_BASE) as usize)
         }
         else if val <= GSW_MAX {
-            Arg::GSW(val - GSW_BASE)
+            Arg::GSW((val - GSW_BASE) as usize)
         }
         else if val <= LSW_MAX {
-            Arg::LSW(val - LSW_BASE)
+            Arg::LSW((val - LSW_BASE) as usize)
         }
         else if val <= GSWF_MAX {
-            Arg::GSWF(val - GSWF_BASE)
+            Arg::GSWF((val - GSWF_BASE) as usize)
         }
         else if val <= LSWF_MAX {
-            Arg::LSWF(val - LSWF_BASE)
+            Arg::LSWF((val - LSWF_BASE) as usize)
         }
         else if val <= GF_MAX {
-            Arg::GF(val - GF_BASE)
+            Arg::GF((val - GF_BASE) as usize)
         }
         else if val <= LF_MAX {
-            Arg::LF(val - LF_BASE)
+            Arg::LF((val - LF_BASE) as usize)
         }
         else if val <= GW_MAX {
-            Arg::GW(val - GW_BASE)
+            Arg::GW((val - GW_BASE) as usize)
         }
         else if val <= LW_MAX {
-            Arg::LW(val - LW_BASE)
+            Arg::LW((val - LW_BASE) as usize)
         }
         else {
             Arg::INT(val)
@@ -107,16 +107,16 @@ impl Arg {
             Arg::NONE => NONE,
             Arg::ADDR(Address(addr)) => addr as i32,
             Arg::FLOAT(val) => change_float(val),
-            Arg::UF(val) => val + UF_BASE,
-            Arg::UW(val) => val + UW_BASE,
-            Arg::GSW(val) => val + GSW_BASE,
-            Arg::LSW(val) => val + LSW_BASE,
-            Arg::GSWF(val) => val + GSWF_BASE,
-            Arg::LSWF(val) => val + LSWF_BASE,
-            Arg::GF(val) => val + GF_BASE,
-            Arg::LF(val) => val + LF_BASE,
-            Arg::GW(val) => val + GW_BASE,
-            Arg::LW(val) => val + LW_BASE,
+            Arg::UF(val) => val as i32 + UF_BASE,
+            Arg::UW(val) => val as i32 + UW_BASE,
+            Arg::GSW(val) => val as i32 + GSW_BASE,
+            Arg::LSW(val) => val as i32 + LSW_BASE,
+            Arg::GSWF(val) => val as i32 + GSWF_BASE,
+            Arg::LSWF(val) => val as i32 + LSWF_BASE,
+            Arg::GF(val) => val as i32 + GF_BASE,
+            Arg::LF(val) => val as i32 + LF_BASE,
+            Arg::GW(val) => val as i32 + GW_BASE,
+            Arg::LW(val) => val as i32 + LW_BASE,
             Arg::INT(val) => val
         }
     }
@@ -159,4 +159,85 @@ pub fn check_float(val: i32) -> f32 {
 pub fn change_float(val: f32) -> i32
 {
     (val * 1024.0) as i32 + FLOAT_BASE
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn encode_round_trip() {
+        for i in 0x8000_0000..0x8180_0000 {
+            let before = Arg::ADDR(Address(i));
+            assert_eq!(before, Arg::decode(before.encode()));
+        }
+
+        for i in 0x9000_0000..0x9400_0000 {
+            let before = Arg::ADDR(Address(i));
+            assert_eq!(before, Arg::decode(before.encode()));
+        }
+
+        for i in 1..10 {
+            let before = Arg::FLOAT(i as f32);
+            assert_eq!(before, Arg::decode(before.encode()));
+        }
+
+        for i in 0..10 {
+            let before = Arg::UF(i);
+            assert_eq!(before, Arg::decode(before.encode()));
+        }
+
+        for i in 0..10 {
+            let before = Arg::UW(i);
+            assert_eq!(before, Arg::decode(before.encode()));
+        }
+
+        for i in 0..GSW_COUNT {
+            let before = Arg::GSW(i);
+            assert_eq!(before, Arg::decode(before.encode()));
+        }
+
+        for i in 0..LSW_COUNT {
+            let before = Arg::LSW(i);
+            assert_eq!(before, Arg::decode(before.encode()));
+        }
+
+        for i in 0..GSWF_COUNT {
+            let before = Arg::GSWF(i);
+            assert_eq!(before, Arg::decode(before.encode()));
+        }
+
+        for i in 0..LSWF_COUNT {
+            let before = Arg::LSWF(i);
+            assert_eq!(before, Arg::decode(before.encode()));
+        }
+
+        for i in 0..GF_COUNT {
+            let before = Arg::GF(i);
+            assert_eq!(before, Arg::decode(before.encode()));
+        }
+
+        for i in 0..LF_COUNT {
+            let before = Arg::LF(i);
+            assert_eq!(before, Arg::decode(before.encode()));
+        }
+
+        for i in 0..GW_COUNT {
+            let before = Arg::GW(i);
+            assert_eq!(before, Arg::decode(before.encode()));
+        }
+
+        for i in 0..LW_COUNT {
+            let before = Arg::LW(i);
+            assert_eq!(before, Arg::decode(before.encode()));
+        }
+
+        for i in -10..10 {
+            let before = Arg::INT(i);
+            assert_eq!(before, Arg::decode(before.encode()));
+        }
+
+        let before = Arg::NONE;
+        assert_eq!(before, Arg::decode(before.encode()));
+    }
 }
