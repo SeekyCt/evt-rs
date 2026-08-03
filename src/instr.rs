@@ -77,3 +77,105 @@ where
         .iter()
         .try_for_each(|instr| instr.to_writer(writer, Endian::Big))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::io::Cursor;
+
+    fn read_instr<const N: usize>(bytes: [u8; N]) -> Instr {
+        let mut cursor = Cursor::new(bytes);
+        Instr::from_reader(&mut cursor, Endian::Big).unwrap()
+    }
+
+    fn write_instr(instr: Instr) -> Vec<u8> {
+        let mut cursor = Cursor::new(vec![]);
+        instr.to_writer(&mut cursor, Endian::Big).unwrap();
+        cursor.into_inner()
+    }
+
+    fn read_disassemble<const N: usize>(bytes: [u8; N]) -> Script {
+        let mut cursor = Cursor::new(bytes);
+        disassemble(&mut cursor).unwrap()
+    }
+
+    fn write_assemble(script: Script) -> Vec<u8> {
+        let mut cursor = Cursor::new(vec![]);
+        assemble(&mut cursor, &script).unwrap();
+        cursor.into_inner()
+    }
+
+    #[test]
+    #[rustfmt::skip]
+    fn test_reader() {
+        assert_eq!(
+            read_instr([
+                0x00, 0x00, 0x00, 0x01,
+            ]),
+            Instr {opcode: Opcode::EndScript, args: vec![]}
+        );
+
+        assert_eq!(
+            read_instr([
+                0x00, 0x02, 0x00, 0x32,
+                0xFE, 0x36, 0x3C, 0x80,
+                0xF5, 0xDE, 0x01, 0x81,
+            ]),
+            Instr {opcode: Opcode::Set, args: vec![Arg::LW(0), Arg::GSW(1)]}
+        );
+    }
+
+    #[test]
+    #[rustfmt::skip]
+    fn test_writer() {
+        assert_eq!(
+            write_instr(Instr {opcode: Opcode::EndScript, args: vec![]}),
+            [
+                0x00, 0x00, 0x00, 0x01,
+            ]
+        );
+
+        assert_eq!(
+            write_instr(Instr {opcode: Opcode::Set, args: vec![Arg::LW(0), Arg::GSW(1)]}),
+            [
+                0x00, 0x02, 0x00, 0x32,
+                0xFE, 0x36, 0x3C, 0x80,
+                0xF5, 0xDE, 0x01, 0x81,
+            ]
+        );
+    }
+
+    #[test]
+    #[rustfmt::skip]
+    fn test_disassemble() {
+        assert_eq!(
+            read_disassemble([
+                0x00, 0x02, 0x00, 0x32,
+                0xFE, 0x36, 0x3C, 0x80,
+                0xF5, 0xDE, 0x01, 0x81,
+                0x00, 0x00, 0x00, 0x01,
+            ]),
+            vec![
+                Instr {opcode: Opcode::Set, args: vec![Arg::LW(0), Arg::GSW(1)]},
+                Instr {opcode: Opcode::EndScript, args: vec![]},
+            ]
+        );
+    }
+
+    #[test]
+    #[rustfmt::skip]
+    fn test_assemble() {
+        assert_eq!(
+            write_assemble(vec![
+                Instr {opcode: Opcode::Set, args: vec![Arg::LW(0), Arg::GSW(1)]},
+                Instr {opcode: Opcode::EndScript, args: vec![]},
+            ]),
+            [
+                0x00, 0x02, 0x00, 0x32,
+                0xFE, 0x36, 0x3C, 0x80,
+                0xF5, 0xDE, 0x01, 0x81,
+                0x00, 0x00, 0x00, 0x01,
+            ]
+        );
+    }
+}
