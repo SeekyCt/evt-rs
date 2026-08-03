@@ -43,6 +43,8 @@ pub const LF_MAX: i32 = -60000000;
 pub const GW_MAX: i32 = -40000000;
 pub const LW_MAX: i32 = -20000000;
 
+pub const FLOAT_UNIT : f32 = 1024.0;
+
 pub const NONE: i32 = -270000000;
 pub const FLOAT_BASE: i32 = -240000000;
 pub const UF_BASE: i32 = -210000000;
@@ -149,7 +151,7 @@ impl ToWriter for Arg {
 
 pub fn check_float(val: i32) -> f32 {
     if val <= FLOAT_MAX {
-        (val - FLOAT_BASE) as f32 / 1024.0
+        (val - FLOAT_BASE) as f32 / FLOAT_UNIT
     }
     else {
         val as f32
@@ -158,7 +160,7 @@ pub fn check_float(val: i32) -> f32 {
 
 pub fn change_float(val: f32) -> i32
 {
-    (val * 1024.0) as i32 + FLOAT_BASE
+    (val * FLOAT_UNIT) as i32 + FLOAT_BASE
 }
 
 #[cfg(test)]
