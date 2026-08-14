@@ -1,10 +1,8 @@
 use std::env;
 use std::fs::File;
 use std::io;
-use std::io::{Read, Seek};
+use std::io::Seek;
 use std::process;
-
-use csv;
 
 use address::*;
 use arg::*;
@@ -19,83 +17,68 @@ pub mod opcode;
 pub mod printing;
 pub mod reader;
 
-#[allow(dead_code)]
-fn round_trip<R>(reader: &mut R, addr: u32) -> bool
-where
-    R: Read + Seek + ?Sized,
-{
-    let base_addr = 0x8000_0000;
-    let offset = addr - base_addr;
+// TODO: anyhow
 
-    reader
-        .seek(io::SeekFrom::Start(offset as u64))
-        .expect("Failed to seek");
-    let dis = disassemble(reader).expect("Couldn't read");
-
-    let mut x = io::Cursor::new(Vec::new());
-    assemble(&mut x, &dis).expect("Failed to assemble");
-    x.seek(io::SeekFrom::Start(0)).expect("Failed to re-seek");
-    let dis2 = disassemble(&mut x).expect("Couldn't re-read");
-
-    return dis == dis2;
-}
-
-#[allow(dead_code)]
-fn test_all<R>(reader: &mut R) -> io::Result<()>
-where
-    R: Read + Seek + ?Sized,
-{
-    let mut csv = csv::Reader::from_path("../spm-docs/misc/dolscriptlocs.csv").expect("");
-    for result in csv.records() {
-        let record = result?;
-        let addr = u32::from_str_radix(&record[0], 16).expect("Parse failed");
-        assert!(round_trip(reader, addr), "Failed 0x{:x}", addr);
-    }
-
-    Ok(())
-}
-
-#[allow(dead_code)]
-fn test_single<R>(reader: &mut R, addr: u32) -> io::Result<Script>
-where
-    R: Read + Seek + ?Sized,
-{
-    let base_addr = 0x8000_0000;
-    let offset = addr - base_addr;
-
-    reader
-        .seek(io::SeekFrom::Start(offset as u64))
-        .expect("Failed to seek");
-    let dis = disassemble(reader).expect("Couldn't read");
-
-    let mut x = io::Cursor::new(Vec::new());
-    assemble(&mut x, &dis).expect("Failed to assemble");
-    x.seek(io::SeekFrom::Start(0)).expect("Failed to re-seek");
-    return disassemble(&mut x);
-}
-
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<String> = env::args().collect();
 
-    if args.len() < 3 {
-        eprintln!("Usage: {} <RAM path> <script address>", &args[0]);
-        process::exit(1);
+    let usage = || {
+        eprintln!("
+Usage: {0} disassemble <path> <address>
+       {0} server
+       {0} help
+            ",
+             &args[0]
+        );
+    };
+
+    if args.len() < 2 {
+        usage()
     }
 
-    let path = &args[1];
-    let addr = args[2].trim_start_matches("0x");
-    let addr = u32::from_str_radix(addr, 16).expect("Invalid address");
+    let cmd = &args[1];
+    let args = &args[2..];
 
-    let mut ram = File::open(path).expect("RAM dump not found");
+    match cmd.as_str() {
+        "disassemble" => {
+            if args.len() < 2 {
+                usage()
+            }
 
-    let base_addr = 0x8000_0000;
-    let offset = addr - base_addr;
+            let path = &args[0];
+            let mut ram = File::open(path)?;
 
-    ram.seek(io::SeekFrom::Start(offset as u64))
-        .expect("Failed to seek");
-    let dis = disassemble(&mut ram).expect("Couldn't read");
+            let addr = args[1].trim_start_matches("0x");
+            let addr = u32::from_str_radix(addr, 16)?;
 
-    let mut out = String::new();
-    print_evt(&mut out, dis, PrintSettings::default()).unwrap();
-    println!("{}", out);
+            let base_addr: u32 = 0x8000_0000;
+            if base_addr > addr {
+                eprintln!("Invalid address");
+                process::exit(1)
+            }
+
+            let offset = addr - base_addr;
+
+            ram.seek(io::SeekFrom::Start(offset as u64))?;
+
+            let dis = disassemble(&mut ram)?;
+
+            let mut out = String::new();
+            print_evt(&mut out, dis, PrintSettings::default())?;
+            println!("{}", out);
+            Ok(())
+        }
+        "server" => {
+            let mut ram = std::io::Cursor::new([0, 0, 0, 1]);
+            let dis = disassemble(&mut ram).unwrap();
+            let mut out = String::new();
+            print_evt(&mut out, dis, PrintSettings::default()).unwrap();
+            println!("{}", out);
+            unimplemented!();
+        }
+        _ => {
+            usage();
+            Ok(())
+        }
+    }
 }
