@@ -2,6 +2,7 @@ use std::env;
 use std::fs::File;
 use std::io;
 use std::io::Seek;
+use std::net::IpAddr;
 use std::process;
 
 use address::*;
@@ -15,6 +16,7 @@ pub mod arg;
 pub mod instr;
 pub mod opcode;
 pub mod printing;
+pub mod ipcclient;
 pub mod reader;
 
 // TODO: anyhow
@@ -25,15 +27,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let usage = || {
         eprintln!("
 Usage: {0} disassemble <path> <address>
-       {0} server
+       {0} network <ip> <port>
        {0} help
             ",
              &args[0]
         );
     };
 
+    let usage_fail = || {
+        usage();
+        Err("Invalid arguments".into())
+    };
+
     if args.len() < 2 {
-        usage()
+        return usage_fail()
     }
 
     let cmd = &args[1];
@@ -42,7 +49,7 @@ Usage: {0} disassemble <path> <address>
     match cmd.as_str() {
         "disassemble" => {
             if args.len() < 2 {
-                usage()
+                return usage_fail()
             }
 
             let path = &args[0];
@@ -68,17 +75,27 @@ Usage: {0} disassemble <path> <address>
             println!("{}", out);
             Ok(())
         }
-        "server" => {
-            let mut ram = std::io::Cursor::new([0, 0, 0, 1]);
-            let dis = disassemble(&mut ram).unwrap();
+        "network" => {
+            if args.len() < 2 {
+                return usage_fail()
+            }
+
+            let ip: IpAddr = args[0].parse().expect("Invalid IP");
+            let port: u16 = args[1].parse().expect("Invalid port");
+            let mut reader = ipcclient::IpcReader::new(ip, port).expect("Failed connection to server");
+
+            let dis = disassemble(&mut reader).unwrap();
             let mut out = String::new();
             print_evt(&mut out, dis, PrintSettings::default()).unwrap();
             println!("{}", out);
-            unimplemented!();
+            Ok(())
         }
-        _ => {
+        "help" => {
             usage();
             Ok(())
+        }
+        _ => {
+            usage_fail()
         }
     }
 }
