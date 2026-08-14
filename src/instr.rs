@@ -18,7 +18,7 @@ impl FromReader for Instr {
 
     fn from_reader_args<R>(reader: &mut R, e: Endian, _: Self::Args) -> io::Result<Self>
     where
-        R: io::Read + io::Seek + ?Sized,
+        R: io::Read + ?Sized,
     {
         let nargs = u16::from_reader(reader, e)? as usize;
 
@@ -56,7 +56,7 @@ pub type Script = Vec<Instr>;
 
 pub fn disassemble<R>(reader: &mut R) -> io::Result<Script>
 where
-    R: io::Read + io::Seek + ?Sized,
+    R: io::Read + ?Sized,
 {
     let mut ret = vec![];
     let mut opcode = Opcode::Next;

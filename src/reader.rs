@@ -22,13 +22,14 @@
     SOFTWARE.
 
     From https://github.com/encounter/decomp-toolkit/
+    Modified to remove seeking
 */
 
 #![cfg_attr(rustfmt, rustfmt_skip)]
 
 use std::{
     io,
-    io::{Error, ErrorKind, Read, Seek, SeekFrom},
+    io::{Error, ErrorKind, Read},
 };
 
 use io::Write;
@@ -65,24 +66,17 @@ pub const fn struct_size<const N: usize>(fields: [usize; N]) -> usize {
     result
 }
 
-#[inline]
-pub fn skip_bytes<const N: usize, R>(reader: &mut R) -> io::Result<()>
-where R: Read + Seek + ?Sized {
-    reader.seek(SeekFrom::Current(N as i64))?;
-    Ok(())
-}
-
 pub trait FromReader: Sized {
     type Args;
 
     const STATIC_SIZE: usize;
 
     fn from_reader_args<R>(reader: &mut R, e: Endian, args: Self::Args) -> io::Result<Self>
-    where R: Read + Seek + ?Sized;
+    where R: Read + ?Sized;
 
     fn from_reader<R>(reader: &mut R, e: Endian) -> io::Result<Self>
     where
-        R: Read + Seek + ?Sized,
+        R: Read + ?Sized,
         Self::Args: Default,
     {
         Self::from_reader_args(reader, e, Default::default())
@@ -113,7 +107,7 @@ macro_rules! impl_from_reader {
 
                 #[inline]
                 fn from_reader_args<R>(reader: &mut R, e: Endian, _args: Self::Args) -> io::Result<Self>
-                where R: Read + Seek + ?Sized {
+                where R: Read + ?Sized {
                     let mut buf = [0u8; Self::STATIC_SIZE];
                     reader.read_exact(&mut buf)?;
                     Ok(Self::from_bytes(buf, e))
@@ -132,7 +126,7 @@ impl<const N: usize> FromReader for [u8; N] {
 
     #[inline]
     fn from_reader_args<R>(reader: &mut R, _e: Endian, _args: Self::Args) -> io::Result<Self>
-    where R: Read + Seek + ?Sized {
+    where R: Read + ?Sized {
         let mut buf = [0u8; N];
         reader.read_exact(&mut buf)?;
         Ok(buf)
@@ -146,7 +140,7 @@ impl<const N: usize> FromReader for [u32; N] {
 
     #[inline]
     fn from_reader_args<R>(reader: &mut R, e: Endian, _args: Self::Args) -> io::Result<Self>
-    where R: Read + Seek + ?Sized {
+    where R: Read + ?Sized {
         let mut buf = [0u32; N];
         reader.read_exact(unsafe {
             std::slice::from_raw_parts_mut(buf.as_mut_ptr() as *mut u8, Self::STATIC_SIZE)
@@ -162,7 +156,7 @@ impl<const N: usize> FromReader for [u32; N] {
 
 #[inline]
 pub fn read_bytes<R>(reader: &mut R, count: usize) -> io::Result<Vec<u8>>
-where R: Read + Seek + ?Sized {
+where R: Read + ?Sized {
     let mut buf = vec![0u8; count];
     reader.read_exact(&mut buf)?;
     Ok(buf)
@@ -173,7 +167,7 @@ pub fn read_vec<T, R>(reader: &mut R, count: usize, e: Endian) -> io::Result<Vec
 where
     T: FromReader,
     T::Args: Default,
-    R: Read + Seek + ?Sized,
+    R: Read + ?Sized,
 {
     let mut vec = Vec::with_capacity(count);
     for _ in 0..count {
@@ -192,7 +186,7 @@ pub fn read_vec_args<T, R>(
 where
     T: FromReader,
     T::Args: Clone,
-    R: Read + Seek + ?Sized,
+    R: Read + ?Sized,
 {
     let mut vec = Vec::with_capacity(count);
     for _ in 0..count {
@@ -206,7 +200,7 @@ pub fn read_string<T, R>(reader: &mut R, e: Endian) -> io::Result<String>
 where
     T: FromReader + TryInto<usize>,
     T::Args: Default,
-    R: Read + Seek + ?Sized,
+    R: Read + ?Sized,
 {
     let len = <T>::from_reader(reader, e)?
         .try_into()

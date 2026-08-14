@@ -118,7 +118,7 @@ impl FromReader for Arg {
 
     fn from_reader_args<R>(reader: &mut R, e: Endian, (): Self::Args) -> io::Result<Self>
     where
-        R: io::Read + io::Seek + ?Sized,
+        R: io::Read + ?Sized,
     {
         let int = i32::from_reader(reader, e)?;
         Ok(Arg::decode(int))
