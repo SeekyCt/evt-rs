@@ -1,0 +1,21 @@
+{
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "cargo run -p evt-rs",
+            "cwd": "${workspaceFolder}",
+            "program": "${workspaceFolder}/target/debug/evt-rs",
+            "preLaunchTask": "rust: cargo build",
+            "env": {
+                "RUST_BACKTRACE": "short",
+                "RUSTC_TOOLCHAIN": "/home/seeky/.rustup/toolchains/stable-x86_64-unknown-linux-gnu"
+            },
+            "args": ["network", "127.0.0.1", "7777"],
+            "sourceMap": {},
+            "sourceLanguages": [
+                "rust"
+            ]
+        }
+    ]
+}
