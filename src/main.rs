@@ -23,11 +23,12 @@ pub mod reader;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<String> = env::args().collect();
+    dbg!(&args);
 
     let usage = || {
         eprintln!("
 Usage: {0} disassemble <path> <address>
-       {0} network <ip> <port>
+       {0} network <ip> <port> <address>
        {0} help
             ",
              &args[0]
@@ -76,13 +77,14 @@ Usage: {0} disassemble <path> <address>
             Ok(())
         }
         "network" => {
-            if args.len() < 2 {
+            if args.len() < 3 {
                 return usage_fail()
             }
 
             let ip: IpAddr = args[0].parse().expect("Invalid IP");
             let port: u16 = args[1].parse().expect("Invalid port");
-            let mut reader = ipcclient::IpcReader::new(ip, port).expect("Failed connection to server");
+            let address = u32::from_str_radix(&args[2], 16).expect("Invalid address");
+            let mut reader = ipcclient::IpcReader::new(ip, port, address).expect("Failed connection to server");
 
             let dis = disassemble(&mut reader).unwrap();
             let mut out = String::new();
